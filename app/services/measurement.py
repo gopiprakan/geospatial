@@ -129,12 +129,19 @@ class MeasurementService:
         # Iterate over features
         for idx, row in gdf.iterrows():
             geom = row.geometry if hasattr(row, "geometry") else None
-            # Extract non-geometry properties
-            props = {
-                k: v
-                for k, v in row.items()
-                if k != "geometry" and v is not None and not (isinstance(v, float) and v != v)
-            }
+            # Extract non-geometry properties and sanitize NaT / NaN / timestamps
+            props = {}
+            for k, v in row.items():
+                if k == "geometry":
+                    continue
+                if pd.isna(v):
+                    continue
+                if isinstance(v, (int, float, str, bool)):
+                    props[k] = v
+                elif hasattr(v, "isoformat"):
+                    props[k] = v.isoformat()
+                else:
+                    props[k] = str(v)
 
             meas = cls.measure_single_geometry(
                 feature_id=int(idx),
