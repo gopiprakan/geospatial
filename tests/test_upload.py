@@ -118,3 +118,20 @@ def test_get_file_info_not_found(client: TestClient):
     response = client.get("/api/files/nonexistent_id_999/")
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
+
+
+def test_endpoints_without_trailing_slash(client: TestClient, sample_kml_bytes: bytes):
+    """Verify that endpoints work consistently without trailing slashes."""
+    upload_res = client.post(
+        "/api/files",
+        files={"file": ("survey.kml", io.BytesIO(sample_kml_bytes), "application/vnd.google-earth.kml+xml")},
+    )
+    assert upload_res.status_code == 201
+    file_id = upload_res.json()["id"]
+
+    info_res = client.get(f"/api/files/{file_id}")
+    assert info_res.status_code == 200
+
+    meas_res = client.get(f"/api/files/{file_id}/measurements")
+    assert meas_res.status_code == 200
+    assert len(meas_res.json()["measurements"]) == 3

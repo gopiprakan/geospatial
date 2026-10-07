@@ -33,6 +33,7 @@ router = APIRouter(
 )
 
 
+@router.post("", include_in_schema=False, status_code=status.HTTP_201_CREATED)
 @router.post(
     "/",
     response_model=FileUploadResponse,
@@ -102,6 +103,7 @@ async def upload_file(
         await file.close()
 
 
+@router.get("/{id}", include_in_schema=False)
 @router.get(
     "/{id}/",
     response_model=FileInfoResponse,
@@ -119,6 +121,7 @@ def get_file_info(id: str) -> FileInfoResponse:
     return FileInfoResponse(**record)
 
 
+@router.get("/{id}/measurements", include_in_schema=False)
 @router.get(
     "/{id}/measurements/",
     response_model=MeasurementResponse,

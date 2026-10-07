@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 import geopandas as gpd
+import pandas as pd
 import pyproj
 from shapely.geometry.base import BaseGeometry
 

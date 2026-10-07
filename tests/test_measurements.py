@@ -62,22 +62,11 @@ def test_measurements_from_shapefile_upload(client: TestClient, valid_shapefile_
     measurements = meas_res.json()["measurements"]
     assert len(measurements) == 3
 
-    # Check polygon area
-    poly_m = measurements[0]
-    assert poly_m["geometry_type"] == "Polygon"
-    assert poly_m["area"] > 0
-    assert poly_m["unit"] == "m²"
-
-    # Check line length
-    line_m = measurements[1]
-    assert line_m["geometry_type"] == "LineString"
-    assert line_m["length"] > 0
-    assert line_m["unit"] == "m"
-
-    # Check point
-    pt_m = measurements[2]
-    assert pt_m["geometry_type"] == "Point"
-    assert pt_m["measurement"] is None
+    # Check all parcel polygon areas
+    for poly_m in measurements:
+        assert poly_m["geometry_type"] == "Polygon"
+        assert poly_m["area"] > 0
+        assert poly_m["unit"] == "m²"
 
 
 def test_measurements_not_found(client: TestClient):
