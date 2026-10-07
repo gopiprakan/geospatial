@@ -55,7 +55,7 @@ class StorageService:
         measurements: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Save a new file record and associated measurements."""
-        measurements_json = json.dumps(measurements)
+        measurements_json = json.dumps(measurements, default=str)
         with self._lock:
             with self._get_connection() as conn:
                 conn.execute(

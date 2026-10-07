@@ -74,7 +74,7 @@ async def upload_file(
                 f_out.write(chunk)
 
         if total_bytes == 0:
-            raise EmptyUploadError("Uploaded file contains 0 bytes.")
+            raise EmptyUploadError("Uploaded file is empty (0 bytes).")
 
         # 3. Process the file into GeoDataFrame
         gdf, crs_str = file_processor_service.process_file(temp_save_path, original_filename)
