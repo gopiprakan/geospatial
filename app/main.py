@@ -7,7 +7,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.exceptions import GeospatialError
@@ -88,6 +89,11 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
+# Mount Static Files
+if settings.static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(settings.static_dir)), name="static")
+
+
 @app.get(
     "/health",
     tags=["System"],
@@ -98,13 +104,7 @@ def health_check():
     return {"status": "healthy", "version": settings.app_version}
 
 
-@app.get(
-    "/",
-    tags=["System"],
-    summary="API Root Information",
-)
-def root():
-    """Root endpoint welcoming clients and linking to docs."""
+def _get_api_metadata():
     return {
         "message": f"Welcome to {settings.app_name}",
         "docs_url": "/docs",
@@ -115,3 +115,32 @@ def root():
             "measurements": "GET /api/files/{id}/measurements/",
         },
     }
+
+
+@app.get(
+    "/",
+    tags=["System"],
+    summary="Interactive Web Application UI",
+)
+def root(request: Request):
+    """
+    Serves the interactive Geospatial Web Application to browsers.
+    Returns JSON metadata if explicitly requested via Accept: application/json.
+    """
+    accept_header = request.headers.get("accept", "")
+    html_file = settings.static_dir / "index.html"
+    if "application/json" in accept_header and "text/html" not in accept_header:
+        return JSONResponse(content=_get_api_metadata())
+    if html_file.exists():
+        return FileResponse(html_file, media_type="text/html")
+    return JSONResponse(content=_get_api_metadata())
+
+
+@app.get(
+    "/api",
+    tags=["System"],
+    summary="API Root Information",
+)
+def api_root():
+    """Return JSON API overview and endpoint links."""
+    return _get_api_metadata()

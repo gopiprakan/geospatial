@@ -17,8 +17,11 @@ class Settings(BaseSettings):
     app_name: str = "Geospatial File Measurement API"
     app_version: str = "1.0.0"
     debug: bool = False
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8000
+
+    # Static assets
+    static_dir: Path = Path(__file__).parent / "static"
 
     # File uploads
     upload_dir: Path = Path("./uploads")
@@ -32,6 +35,7 @@ class Settings(BaseSettings):
         """Ensure necessary runtime directories exist."""
         self.upload_dir.mkdir(parents=True, exist_ok=True)
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        self.static_dir.mkdir(parents=True, exist_ok=True)
 
 
 settings = Settings()

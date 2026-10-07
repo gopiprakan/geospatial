@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geospatial File Measurement API | Interactive Dashboard</title>
+  <meta name="description" content="Production-quality REST API and Web Interface for uploading KML and Shapefile files, resolving local UTM projected CRS, and calculating metric area and length measurements.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container header-content">
+      <a href="/" class="brand" id="brandLink">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Geospatial File Measurement API</h1>
+          <p class="brand-subtitle">FastAPI &bull; GeoPandas &bull; Shapely &bull; PyProj</p>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <div class="status-badge" id="systemStatusBadge">
+          <span class="status-dot"></span>
+          <span>API Online</span>
+        </div>
+        <a href="/docs" target="_blank" class="nav-link primary" id="swaggerDocsLink">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Swagger Docs
+        </a>
+        <a href="/redoc" target="_blank" class="nav-link" id="redocDocsLink">ReDoc</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-tag">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Dynamic UTM Reprojection &bull; Metric Geodesy
+      </div>
+      <h2 class="hero-title">Geospatial File Measurement Engine</h2>
+      <p class="hero-desc">
+        Upload <strong>.kml</strong> or <strong>.zip</strong> Shapefiles. The engine automatically identifies geometries, resolves CRS into local projected UTM zones, and calculates conformal metric measurements (<strong>m²</strong> and <strong>m</strong>).
+      </p>
+    </section>
+
+    <!-- Upload Card -->
+    <section class="upload-card">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <h3 class="drop-title">Drop your geospatial file here</h3>
+        <p class="drop-subtitle">or click anywhere to browse from your device</p>
+        <div class="file-types-pill">
+          <span class="type-tag">.KML</span>
+          <span class="type-tag">.ZIP (Shapefile)</span>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept=".kml,.zip">
+      </div>
+
+      <!-- Quick Sample Buttons -->
+      <div class="sample-actions">
+        <span class="sample-label">Want to test instantly?</span>
+        <button type="button" class="btn btn-secondary" id="btnSampleKml">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          Try Sample KML (Perimeter & Line)
+        </button>
+      </div>
+
+      <!-- Upload Progress -->
+      <div class="progress-container" id="progressBar">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressStatus">Uploading file...</span>
+          <span id="progressPercent">Processing</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection">
+      <!-- File Metadata Header Card -->
+      <div class="results-header-card">
+        <div class="file-identity">
+          <div class="file-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          </div>
+          <div>
+            <h3 class="file-meta-name" id="resFilename">-</h3>
+            <span class="file-id-badge" onclick="copyFileId()" title="Click to copy file ID">
+              <span>ID:</span>
+              <strong id="resFileId">-</strong>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="meta-badges">
+          <div class="meta-pill">
+            <span class="meta-pill-label">Detected CRS</span>
+            <span class="meta-pill-val" id="resCrs">-</span>
+          </div>
+          <div class="meta-pill">
+            <span class="meta-pill-label">Features Count</span>
+            <span class="meta-pill-val" id="resCount">0</span>
+          </div>
+          <div class="meta-pill">
+            <span class="meta-pill-label">Processing Status</span>
+            <span class="meta-pill-val" style="color: var(--accent-emerald);" id="resStatus">COMPLETED</span>
+          </div>
+          <button class="btn btn-secondary" onclick="downloadJson()" title="Download raw measurements JSON">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Total Polygon Area</span>
+            <div class="metric-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </div>
+          </div>
+          <div class="metric-val" id="metricTotalArea">0.00 m²</div>
+          <div class="metric-sub" id="metricAreaSub">0 polygons measured</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Total Line Length</span>
+            <div class="metric-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"></line><circle cx="5" cy="19" r="2"></circle><circle cx="19" cy="5" r="2"></circle></svg>
+            </div>
+          </div>
+          <div class="metric-val" id="metricTotalLength">0.00 m</div>
+          <div class="metric-sub" id="metricLengthSub">0 lines measured</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Polygons / Lines / Points</span>
+            <div class="metric-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--accent-violet);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+          </div>
+          <div class="metric-val">
+            <span id="metricPolyCount">0</span> / <span id="metricLineCount">0</span> / <span id="metricPointCount">0</span>
+          </div>
+          <div class="metric-sub">Feature type distribution</div>
+        </div>
+      </div>
+
+      <!-- Feature Measurements Table -->
+      <div class="data-card">
+        <div class="table-toolbar">
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="ALL">All Features</button>
+            <button class="filter-btn" data-filter="POLYGON">Polygons</button>
+            <button class="filter-btn" data-filter="LINESTRING">LineStrings</button>
+            <button class="filter-btn" data-filter="POINT">Points</button>
+          </div>
+          <input type="text" id="searchInput" class="table-search" placeholder="Search feature name or ID...">
+        </div>
+
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Index</th>
+                <th style="width: 140px;">Geometry</th>
+                <th>Feature Name / Label</th>
+                <th style="width: 220px;">Calculated Measurement</th>
+                <th style="width: 120px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="measurementsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
