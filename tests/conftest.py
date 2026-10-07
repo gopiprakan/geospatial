@@ -80,15 +80,15 @@ def corrupted_kml_bytes() -> bytes:
 @pytest.fixture
 def valid_shapefile_zip_bytes() -> bytes:
     """Generate a valid ZIP archive containing a Shapefile (.shp, .shx, .dbf, .prj)."""
-    poly = Polygon([(77.59, 12.97), (77.60, 12.97), (77.60, 12.98), (77.59, 12.98), (77.59, 12.97)])
-    line = LineString([(77.59, 12.97), (77.60, 12.98)])
-    pt = Point(77.5946, 12.9716)
+    poly1 = Polygon([(77.59, 12.97), (77.60, 12.97), (77.60, 12.98), (77.59, 12.98), (77.59, 12.97)])
+    poly2 = Polygon([(77.61, 12.97), (77.62, 12.97), (77.62, 12.98), (77.61, 12.98), (77.61, 12.97)])
+    poly3 = Polygon([(77.63, 12.97), (77.64, 12.97), (77.64, 12.98), (77.63, 12.98), (77.63, 12.97)])
 
     gdf = gpd.GeoDataFrame(
         [
-            {"id": 1, "name": "Poly 1", "geometry": poly},
-            {"id": 2, "name": "Line 1", "geometry": line},
-            {"id": 3, "name": "Point 1", "geometry": pt},
+            {"id": 1, "name": "Parcel 1", "geometry": poly1},
+            {"id": 2, "name": "Parcel 2", "geometry": poly2},
+            {"id": 3, "name": "Parcel 3", "geometry": poly3},
         ],
         crs="EPSG:4326",
     )
